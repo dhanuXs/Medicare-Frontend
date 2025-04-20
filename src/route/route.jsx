@@ -5,31 +5,29 @@ import HomePage from "../pages/HomePage/HomePage.jsx";
 import SignUp from "../pages/SignUpPage/SignUp.jsx";
 import AboutPage from "../pages/AboutPage/AboutPage.jsx";
 import App from "../App.jsx";
+import User from "../pages/UserPage/User.jsx";
 
 const routes = createBrowserRouter([
     // Public Routes
     {
-        path: "/",
+        path: "/signUp",
+        index: true,
+        element: <SignUp />,
+    },
+    {
+        path: "/signin",
+        index: true,
         element: <SignInPage />,
-        errorElement: <ErrorPage />,
-        children: [
-            {
-                index: true,
-                element: <HomePage />,
-            },
-            {
-                path: "signin",
-                element: <SignInPage />,
-            },
-            {
-                path: "signup",
-                element: <SignUp />,
-            },
-            {
-                path: "about",
-                element: <AboutPage />
-            },
-
-        ],
-    }]);
+    },
+    {
+        path: "/",
+        index: true,
+        element: <SignUp />,
+    },
+    {
+        path: "/home",
+        index: true,
+        element: <User />
+    }
+    ]);
 export default routes;

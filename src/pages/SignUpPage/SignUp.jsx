@@ -23,6 +23,7 @@ const SignUp = () => {
         })
             .then(res => {
                 console.log(res);
+                alert("Register Successfully!")
                 setAlert({ type: "success", message: "Registered Successfully!" });
             })
             .catch(err => {err.preventDefault(); console.log(err);})
@@ -115,7 +116,7 @@ const SignUp = () => {
                             <input type="checkbox" id="terms" className="mt-1 mr-2" required />
                             <label htmlFor="terms" className="text-gray-600">
                                 By signing up, you agree to our{" "}
-                                <a href="#" className="text-[#00B4D8] hover:underline">
+                                <a href="/signup" className="text-[#00B4D8] hover:underline">
                                     Terms & Privacy Policy
                                 </a>
                             </label>
@@ -131,7 +132,7 @@ const SignUp = () => {
                     </form>
                     <p className="text-center text-gray-500 mt-6">
                         Already have an account?{" "}
-                        <a href="/login" className="text-[#00B4D8] hover:underline">
+                        <a href="/signin" className="text-[#00B4D8] hover:underline">
                             Login
                         </a>
                     </p>
