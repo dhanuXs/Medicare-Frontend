@@ -1,14 +1,55 @@
 import React, { useState } from 'react';
+import axios from "axios";
 
 const SignInPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [rememberMe, setRememberMe] = useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         // Handle sign in logic here
+        const user = {
+            email,
+            password
+        }
         console.log('Signing in with:', { email, password, rememberMe });
+        await axios.post('http://localhost:8080/api/v1/auth/authenticate',user)
+        .then(res => {
+            console.log(res);
+            localStorage.setItem("jwtToken",res.data.data.token);
+            alert('Login success')
+
+            getUser();
+            setAlert({ type: "success", message: "Login Successfully!" });
+        })
+            .catch(err => {err.preventDefault(); console.log(err);})
+        setAlert({ type: "error", message: "Login failed!" });
+    };
+
+    const getUser = async () => {
+        try {
+            const token = localStorage.getItem('jwtToken');
+            const response = await axios.get(
+                `http://localhost:8080/api/v1/user/getUser/${encodeURIComponent(email)}`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
+            localStorage.setItem("user", JSON.stringify(response.data.data.role));
+            let role = response.data.data.role;
+            if (role === "ADMIN"){
+                return ({
+
+                })
+            }
+            return response.data.data.object;
+        } catch (error) {
+            console.error("Error fetching user:", error);
+            throw error;
+        }
     };
 
     return (

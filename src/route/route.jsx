@@ -10,7 +10,7 @@ const routes = createBrowserRouter([
     // Public Routes
     {
         path: "/",
-        element: <App />,
+        element: <SignInPage />,
         errorElement: <ErrorPage />,
         children: [
             {
