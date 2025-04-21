@@ -2,13 +2,15 @@ import React, {useState} from "react";
 import axios from "axios";
 import {Alert} from "@mui/material";
 import AlertComp from "../../component/alert/AlertComp.jsx";
+import {useNavigate} from "react-router-dom";
 
 const SignUp = () => {
     const [email, setEmail] = React.useState("");
     const [password, setPassword] = React.useState("");
     const [phone, setPhone] = React.useState("");
     const [name, setName] = React.useState("");
-    const [alert, setAlert] = useState(null);
+    const [alerts, setAlert] = useState(null);
+    const navigate = useNavigate();
 
     const handleSignUp = async () => {
         console.log(name, email, password, phone);
@@ -23,11 +25,14 @@ const SignUp = () => {
         })
             .then(res => {
                 console.log(res);
-                alert("Register Successfully!")
+                alert("Register successfull!")
+                navigate('/signin');
                 setAlert({ type: "success", message: "Registered Successfully!" });
             })
-            .catch(err => {err.preventDefault(); console.log(err);})
-            setAlert({ type: "error", message: "Registration failed!" });
+            .catch(err => { console.log(err);
+                alert(err)
+            })
+            /*setAlert({ type: "error", message: "Registration failed!" });*/
 
     }
     return (

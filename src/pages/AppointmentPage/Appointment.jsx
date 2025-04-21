@@ -1,20 +1,20 @@
 import Input from "../../component/emailComponent/Input.jsx";
 import React, { useState } from "react";
-import './AppointmentPage.css'
+import "./AppointmentPage.css"
 import Button from '@mui/material/Button';
 import { div } from "framer-motion/client";
 
 function AppointmentPage() {
 
     return (
-        <div style={{paddingBlock:"4rem"}}>
+        <div id="#user/appointment" style={{paddingBlock:"4rem"}}>
             <h1 className="text-3xl font-bold text-slate-700 mb-2 text-center">
                 Appointment
             </h1>
             <div style={{ padding: "4rem", paddingInline: "8rem" }}>
                 <form action="" className="grid grid-cols-3 gap-4">
                     <div>
-                        <Input id="name" name="Your Name" type="text" placeHolder="" />
+                        <Input id="name" name="Patient Name" type="text" placeHolder="" />
                     </div>
                     <div>
                         <Input id="email" name="Your Email" type="email" placeHolder="" />
@@ -26,10 +26,18 @@ function AppointmentPage() {
                         <Input id="date" name="" type="date" placeHolder="" />
                     </div>
                     <div>
-                        <Input id="date" name="date" type="calender" placeHolder="" />
+                        <Input id="time" name="time" type="time" placeHolder="" />
                     </div>
                     <div>
-                        <Input id="date" name="" type="calender" placeHolder="" />
+                       <select style={{width:"100%", padding: "10px",
+                           boxShadow: 'rgba(0, 0, 0, 0.05) 0px 0px 0px 1px, rgb(209, 213, 219) 0px 0px 0px 1px inset',// Black border
+                           borderRadius: "5px",
+                           outline: "none",
+                           fontSize: "16px",
+                           transition: "border-color 0.3s ease",
+                           marginTop: "1rem"}}>
+                           <option value="">Select Reason</option>
+                       </select>
                     </div>
                     <div className="col-span-3">
             <textarea

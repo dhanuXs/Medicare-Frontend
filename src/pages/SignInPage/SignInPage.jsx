@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import axios from "axios";
+import {useNavigate} from "react-router-dom";
 
 const SignInPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [rememberMe, setRememberMe] = useState(false);
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -21,6 +23,7 @@ const SignInPage = () => {
             alert('Login success')
 
             getUser();
+
             setAlert({ type: "success", message: "Login Successfully!" });
         })
             .catch(err => {err.preventDefault(); console.log(err);})
@@ -41,9 +44,9 @@ const SignInPage = () => {
             localStorage.setItem("user", JSON.stringify(response.data.data.role));
             let role = response.data.data.role;
             if (role === "ADMIN"){
-                return ({
-
-                })
+                navigate("/admin")
+            } else {
+                navigate("/home")
             }
             return response.data.data.object;
         } catch (error) {

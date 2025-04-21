@@ -17,7 +17,7 @@ import logo from '../../assets/logo/be85cc684b308f4c15eb024f2dfdf16a59a157c4f947
 const pages = ['Home', 'About', 'Service', 'Doctors', 'Contact','Appointment'];
 const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
 
-function ResponsiveAppBar() {
+function UserResponsiveAppBar() {
     const [anchorElNav, setAnchorElNav] = React.useState(null);
     const [anchorElUser, setAnchorElUser] = React.useState(null);
 
@@ -88,9 +88,9 @@ function ResponsiveAppBar() {
                         >
                             {pages.map((page) => (
 
-                                    <MenuItem key={page} onClick={handleCloseNavMenu}>
-                                        <Typography sx={{ textAlign: 'center'}}>{page}</Typography>
-                                    </MenuItem>
+                                <MenuItem key={page} onClick={handleCloseNavMenu}>
+                                    <Typography sx={{ textAlign: 'center'}}>{page}</Typography>
+                                </MenuItem>
 
                             ))}
                         </Menu>
@@ -117,18 +117,16 @@ function ResponsiveAppBar() {
                     <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } ,alignContent :'center',justifyContent:'end',marginRight:'20px'}}>
                         {pages.map((page) => (
                             <a href={`user/${page}`}>
-                            <Button
-                                key={page}
-                                onClick={handleCloseNavMenu}
-                                sx={{ my: 2, color: 'black', display: 'block',fontWeight:300,fontSize:'1.2rem',marginInline:'10px' }}
-                            >
-                                {page}
-                            </Button>
+                                <Button
+                                    key={page}
+                                    onClick={handleCloseNavMenu}
+                                    sx={{ my: 2, color: 'black', display: 'block',fontWeight:300,fontSize:'1.2rem',marginInline:'10px' }}
+                                >
+                                    {page}
+                                </Button>
                             </a>
                         ))}
                     </Box>
-                    <a href="/signin"><Button variant="outlined">SignIn</Button></a>
-                    <a href="/signup"><Button style={{marginInline:"10px"}} variant="contained">SignUp</Button></a>
                     <Box sx={{ flexGrow: 0 }}>
                         <Tooltip title="Open settings">
                             <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
@@ -164,4 +162,4 @@ function ResponsiveAppBar() {
         </AppBar>
     );
 }
-export default ResponsiveAppBar;
+export default UserResponsiveAppBar;
