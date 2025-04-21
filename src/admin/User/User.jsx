@@ -13,7 +13,8 @@ import {v4} from 'uuid';
 export default function User() {
     const [userData, setUserData] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [selectedUsers, setSelectedUsers] = useState([]);
+    const [selectedUsers, setSelectedUsers] = useState([]); // Store selected user IDs
+    const [selectedUserData, setSelectedUserData] = useState([]); // Store complete user data objects
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -62,17 +63,35 @@ export default function User() {
             setLoading(false);
         }
     };
-    const saveNewUser =async () =>{
-        let axiosResponse = await axios.post(`http://localhost:8080/api/v1/user/register`,newUser,
-            {
-                headers:{
-                    'Authorization': `Bearer ${localStorage.getItem("jwtToken")}`
-                }
-            });
-        if(axiosResponse != null){
-            alert("User Saved!")
-        } else {
-            alert("Error!")
+
+    const saveNewUser = async () => {
+        try {
+            let axiosResponse = await axios.post(`http://localhost:8080/api/v1/user/register`, newUser,
+                {
+                    headers:{
+                        'Authorization': `Bearer ${localStorage.getItem("jwtToken")}`
+                    }
+                });
+            if(axiosResponse != null){
+                alert("User Saved!")
+                setIsModalOpen(false);
+                fetchUsers(); // Refresh the user list
+                // Reset form
+                setNewUser({
+                    name: '',
+                    email: '',
+                    password: '',
+                    contactNumber: '',
+                    imgUrl: '',
+                    role: 'Patient',
+                    status: 'Active'
+                });
+            } else {
+                alert("Error!")
+            }
+        } catch (error) {
+            console.error("Error saving user:", error);
+            alert("Error saving user. Please try again.");
         }
     }
 
@@ -85,20 +104,44 @@ export default function User() {
         user.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const handleSelectAll = (e) => {
-        if (e.target.checked) {
-            setSelectedUsers(filteredUsers.map(user => user.id));
+    const handleSelectUser = (userId) => {
+        // Find the full user object
+        const selectedUser = userData.find(user => user.id === userId);
+
+        if (selectedUsers.includes(userId)) {
+            // Unselect user
+            setSelectedUsers(selectedUsers.filter(id => id !== userId));
+            setSelectedUserData(selectedUserData.filter(user => user.id !== userId));
+
+            // Remove from localStorage if it exists
+            const storedUsers = JSON.parse(localStorage.getItem('selectedUsers') || '[]');
+            const updatedUsers = storedUsers.filter(user => user.id !== userId);
+            localStorage.setItem('selectedUsers', JSON.stringify(updatedUsers));
         } else {
-            setSelectedUsers([]);
+            // Select user
+            setSelectedUsers([...selectedUsers, userId]);
+            setSelectedUserData([...selectedUserData, selectedUser]);
+
+            // Store in localStorage
+            const storedUsers = JSON.parse(localStorage.getItem('selectedUsers') || '[]');
+
+            // Only add if not already in the array
+            if (!storedUsers.some(user => user.id === userId)) {
+                storedUsers.push(selectedUser);
+                localStorage.setItem('selectedUsers', JSON.stringify(storedUsers));
+            }
         }
+
+        // Console log for debugging - you can remove this in production
+        console.log("Selected user data:", selectedUserData);
     };
 
-    const handleSelectUser = (userId) => {
-        if (selectedUsers.includes(userId)) {
-            setSelectedUsers(selectedUsers.filter(id => id !== userId));
-        } else {
-            setSelectedUsers([...selectedUsers, userId]);
-        }
+    // Handle edit user and store in localStorage
+    const handleEditUser = (user) => {
+        // Store the user to edit in localStorage
+        localStorage.setItem('userToEdit', JSON.stringify(user));
+        // Navigate to edit page
+        window.location.href = '/user/edit';
     };
 
     // Function to get user initials for avatar
@@ -193,7 +236,45 @@ export default function User() {
             setSubmitLoading(false);
         }
     };
+    const deleteUser = async () => {
+        try {
+            if (selectedUsers.length === 0) {
+                alert("No users selected for deletion");
+                return;
+            }
 
+            // Assuming we're deleting one user at a time, or the first selected user
+            const userToDelete = selectedUserData[0]; // Get the first selected user's data
+
+            if (!userToDelete || !userToDelete.email) {
+                throw new Error("User email not found for deletion");
+            }
+
+            // Make the delete request
+            const response = await axios.post(
+                `http://localhost:8080/api/v1/user/delete/${userToDelete.email}`,
+                {},
+                {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem("jwtToken")}`
+                    }
+                }
+            );
+
+            // On success, refresh the user list and clear selections
+            alert("User deleted successfully!");
+            setSelectedUsers([]);
+            setSelectedUserData([]);
+            localStorage.removeItem('selectedUsers');
+            fetchUsers(); // Refresh the user list
+
+            return response.data;
+        } catch (error) {
+            console.error("Error deleting user:", error);
+            alert("Error deleting user: " + (error.response?.data?.message || error.message));
+            throw error;
+        }
+    };
     return (
         <div className="flex h-screen bg-gray-50">
             {/* Sidebar */}
@@ -296,6 +377,7 @@ export default function User() {
                             </button>
                             {selectedUsers.length > 0 && (
                                 <button
+                                    onClick={deleteUser}
                                     className="px-4 py-2 bg-red-500 text-white rounded-lg flex items-center space-x-1 hover:bg-red-600">
                                     <Trash2 className="w-5 h-5"/>
                                     <span>Delete Selected</span>
@@ -322,12 +404,8 @@ export default function User() {
                                 <thead className="bg-gray-50">
                                 <tr>
                                     <th scope="col" className="px-6 py-3 text-left">
-                                        <input
-                                            type="checkbox"
-                                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                            onChange={handleSelectAll}
-                                            checked={selectedUsers.length === filteredUsers.length && filteredUsers.length > 0}
-                                        />
+                                        {/* Select All checkbox removed */}
+                                        <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Select</span>
                                     </th>
                                     <th scope="col"
                                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -415,11 +493,12 @@ export default function User() {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <div className="flex space-x-2">
-                                                <a href="/user/edit">
-                                                    <button className="text-blue-600 hover:text-blue-900">
-                                                        <Edit className="w-5 h-5"/>
-                                                    </button>
-                                                </a>
+                                                <button
+                                                    className="text-blue-600 hover:text-blue-900"
+                                                    onClick={() => handleEditUser(user)}
+                                                >
+                                                    <Edit className="w-5 h-5"/>
+                                                </button>
                                                 <button className="text-gray-400 hover:text-gray-600">
                                                     <MoreVertical className="w-5 h-5"/>
                                                 </button>
@@ -488,7 +567,6 @@ export default function User() {
                     </div>
                 </div>
             </div>
-
             {/* Add User Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -599,10 +677,10 @@ export default function User() {
                                         onChange={handleInputChange}
                                         className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
                                     >
-                                        <option value="Patient">Patient</option>
-                                        <option value="Doctor">Doctor</option>
-                                        <option value="Admin">Admin</option>
-                                        <option value="Staff">Staff</option>
+                                        <option value="PATIENT">Patient</option>
+                                        <option value="DOCTOR">Doctor</option>
+                                        <option value="ADMIN">Admin</option>
+                                        <option value="USER">User</option>
                                     </select>
                                 </div>
 

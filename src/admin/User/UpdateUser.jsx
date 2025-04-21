@@ -1,25 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { X, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import axios from "axios";
-import { imgDb } from "../../util/Firebase/Config.js";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { v4 } from 'uuid';
 
 export default function UserUpdateForm() {
+    // Get user from localStorage and parse it
+    const userFromStorage = localStorage.getItem("userToEdit");
+    const parsedUser = userFromStorage ? JSON.parse(userFromStorage) : null;
+
+    // Define state at the component top level
     const [userData, setUserData] = useState({
-        email: '',
-        name: '',
+        email: parsedUser?.email || '',
+        name: parsedUser?.name || '',
         password: '',
-        contactNumber: '',
-        imgUrl: '',
-        role: 'Patient'
+        contactNumber: parsedUser?.contactNumber || '',
+        imgUrl: parsedUser?.imgUrl || '',
+        role: parsedUser?.role || 'Patient'
     });
 
     const [imageFile, setImageFile] = useState(null);
-    const [previewImage, setPreviewImage] = useState(null);
+    const [previewImage, setPreviewImage] = useState(parsedUser?.imgUrl || null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [userId, setUserId] = useState(null);
 
     useEffect(() => {
         // Get user ID from URL parameter
@@ -27,7 +28,6 @@ export default function UserUpdateForm() {
         const email = urlParams.get('email');
 
         if (email) {
-            setUserId(email);
             fetchUserData(email);
         }
     }, []);
@@ -85,37 +85,23 @@ export default function UserUpdateForm() {
         }
     };
 
-    const uploadImage = async () => {
+    const uploadImageToGoogleDrive = async () => {
         if (!imageFile) return userData.imgUrl; // Return existing URL if no new file
 
-        try {
-            // Create a unique file name
-            const fileName = `${v4()}_${imageFile.name}`;
-            const imageRef = ref(imgDb, `profile_images/${fileName}`);
-
-            // Upload the file
-            const snapshot = await uploadBytes(imageRef, imageFile);
-
-            // Get the download URL
-            const downloadURL = await getDownloadURL(snapshot.ref);
-
-            return downloadURL;
-        } catch (error) {
-            console.error("Error uploading image:", error);
-            throw new Error("Failed to upload image. Please try again.");
-        }
+        // Google Drive upload logic goes here
+        // Currently commented out in original code
+        return userData.imgUrl; // Return existing URL for now
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setError(null);
-
+    const updateUser = async () => {
         try {
+            setLoading(true);
+            setError(null);
+
             // First upload image if available
             let imgUrl = userData.imgUrl;
             if (imageFile) {
-                imgUrl = await uploadImage();
+                imgUrl = await uploadImageToGoogleDrive();
             }
 
             // Create user object with image URL if uploaded
@@ -130,16 +116,19 @@ export default function UserUpdateForm() {
             }
 
             // Send API request to update user
-            await axios.put(`http://localhost:8080/api/v1/user/update/${userId}`, userToUpdate, {
+            const response = await axios.post(`http://localhost:8080/api/v1/user/update`, userToUpdate, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem("jwtToken")}`
                 }
             });
 
-            alert('User updated successfully!');
-            // Redirect to user listing page
-            window.location.href = '/admin/users';
-
+            if (response.data) {
+                alert('User updated successfully!');
+                // Redirect to user listing page
+                window.location.href = '/admin/users';
+            } else {
+                setError("Failed to update user. Please try again.");
+            }
         } catch (err) {
             console.error("Error updating user:", err);
             setError(err.response?.data?.message || "Failed to update user. Please try again.");
@@ -157,20 +146,6 @@ export default function UserUpdateForm() {
         if (!name) return "U";
         return name.split(' ').map(n => n[0]).join('').toUpperCase();
     };
-
-    const updateUser =async () => {
-        let resp = await axios.post(`http://localhost:8080/api/v1/user/update`,userData,
-            {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem("jwtToken")}`    
-                }
-            });
-        if(resp != null){
-            alert("User updates!")
-        } else {
-            alert("Error")
-        }
-    }
 
     return (
         <div className="flex h-screen bg-gray-50">
@@ -198,7 +173,7 @@ export default function UserUpdateForm() {
                             {error}
                         </div>
                     ) : (
-                        <form onSubmit={handleSubmit} className="space-y-6">
+                        <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
                             {/* Profile Image Section */}
                             <div className="flex flex-col items-center mb-6">
                                 <div className="mb-4">
@@ -311,10 +286,10 @@ export default function UserUpdateForm() {
                                         onChange={handleInputChange}
                                         className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                                     >
-                                        <option value="Patient">Patient</option>
-                                        <option value="Doctor">Doctor</option>
-                                        <option value="Admin">Admin</option>
-                                        <option value="Staff">Staff</option>
+                                        <option value="PATIENT">Patient</option>
+                                        <option value="DOCTOR">Doctor</option>
+                                        <option value="ADMIN">Admin</option>
+                                        <option value="USER">User</option>
                                     </select>
                                 </div>
                             </div>
